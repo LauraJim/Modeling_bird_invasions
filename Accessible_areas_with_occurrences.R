@@ -75,9 +75,8 @@ for (x in 1:length(bird.species)){
 
 # 5) Add environmental data to rarefied occurrences    
   native.bird.rare.vars <- data.frame(extract(pc.native,native.bird.rare))
-                                             # SpatialPoints(coords=native.bird.rare,
-                                              #              proj4string=crs(native.range.shp))))
   invasive.bird.rare.vars <- data.frame(extract(pc.invasive,invasive.bird.rare))
+  # paste data frames (longitude, latitude, PC1, PC2)
   native.bird.rare.vars <- na.omit(data.frame(native.bird.rare.ll,native.bird.rare.vars))
   invasive.bird.rare.vars <- na.omit(data.frame(invasive.bird.rare.ll,invasive.bird.rare.vars))
   head(native.bird.rare.vars)
