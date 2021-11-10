@@ -2,7 +2,6 @@
 library(rgdal)
 library(raster)
 library(dismo)
-#library(sdm)
 library(ggplot2)
 library(ecospat)
 
@@ -25,7 +24,6 @@ sp.nocc.inv <- sp.nocc.ini
 sp.nocc.inv.rare <- sp.nocc.ini
 
 for (x in 1:length(bird.species)){ 
-  x=1
   species.id <- bird.species[x]
   
 # 1) select species occurrences from GBIF dataset
@@ -105,16 +103,14 @@ for (x in 1:length(bird.species)){
   colnames(rp.ir.vars) <- c("lon","lat","PC1","PC2")
   write.csv(rp.ir.vars,paste0("./Nf_modeling/accessible-areas/",
                               species.id,"_invaded_region.csv"))
-  
-  
-}
+} #end of for-loop
 
 # Save summary information
 sum.table <- cbind(bird.species,sp.nocc.ini,sp.nocc.end,sp.nocc.rare,
-                   sp.nocc.invasive,sp.nocc.inv.rare)
+                   sp.nocc.inv,sp.nocc.inv.rare)
 colnames(sum.table) <- c("speciesID","N.initial","N.cleaned","N.rarefied",
                          "N.invasive","N.inv.rarefied")
-write.csv(sum.table,"./Nf_modeling/occurrences/allspecies_samplesizes")
+write.csv(sum.table,"./Nf_modeling/allspecies_samplesizes.csv",row.names = F)
 
 
 ### END
