@@ -1,67 +1,92 @@
 ##libraries##
 library(rgdal)
 library(raster)
-library(RStoolbox)
-library(humboldt)
 library(dismo)
-library(sdm)
+#library(sdm)
 library(ggplot2)
 library(ecospat)
-library(sp)
 
 # Read species IDs
 bird.species <- list.dirs(path = "./ranges", full.names = FALSE, recursive = FALSE)
 
 ##occurrence data
 native.occs <- readOGR("./occurrences","native.range")
-#invasive.occs <- readOGR("./occurrences","invasive.range")
+invasive.occs <- readOGR("./occurrences","invasive.range")
 
 ## relevant regions
-#europe.default <- readOGR("./biogeo","europe")
+europe.default <- readOGR("./biogeo","europe")
 bioregs <- readOGR("./biogeo","newRealms")
 
 # summary information
 sp.nocc.ini <- vector("numeric",length = length(bird.species))
 sp.nocc.end <- sp.nocc.ini
+sp.nocc.rare <- sp.nocc.ini
+sp.nocc.inv <- sp.nocc.ini
+sp.nocc.inv.rare <- sp.nocc.ini
 
 for (x in 1:length(bird.species)){ 
-  species.id <- bird.species[1]
+  x=1
+  species.id <- bird.species[x]
   
-  # select species occurrences
+# 1) select species occurrences from GBIF dataset
   native.bird <- native.occs[native.occs$species==species.id,]
-  sp.nocc.ini[1] <- nrow(native.bird)
-  #invasive.bird <- invasive.occs[invasive.occs$species==species.id,]  
-  #nrow(invasive.bird)  
+  # initial sample size
+  sp.nocc.ini[x] <- nrow(native.bird)
+  invasive.bird <- invasive.occs[invasive.occs$species==species.id,]  
+  sp.nocc.inv[x] <- nrow(invasive.bird)  
   
-  #restrict GBIF data to occurrences in (close to native range boundaries)
+# 2) restrict GBIF data to occurrences in (close to native range boundaries)
   native.range.shp <- readOGR(paste0("./ranges/",species.id),species.id)
   
   #http://datazone.birdlife.org/species/spcdistPOS
   #subset BirdLife shape files
-  native.range.shp <- native.range.shp[which(native.range.shp$ORIGIN == 1 |native.range.shp$ORIGIN == 2),]      #keep native and reintroduced ranges
-  native.range.shp <- native.range.shp[which(native.range.shp$SEASONAL == 1 |native.range.shp$SEASONAL == 2),]  #keep resident and breeding season ranges
-  native.range.shp <- buffer(native.range.shp,width=0.5,dissolve=TRUE)                                          #buffer with 0.5?C
+  #keep native and reintroduced ranges
+  native.range.shp <- native.range.shp[which(native.range.shp$ORIGIN == 1 |native.range.shp$ORIGIN == 2),]  
+  #keep resident and breeding season ranges
+  native.range.shp <- native.range.shp[which(native.range.shp$SEASONAL == 1 |native.range.shp$SEASONAL == 2),]
+  #buffer with 0.5?C
+  native.range.shp <- buffer(native.range.shp,width=0.5,dissolve=TRUE)                                          
   #plot(native.range.shp)
   
-  native.bird.BL <- raster::intersect(native.bird,native.range.shp)                                             #keep only occurrences that are within the buffered native range
-  sp.nocc.end[1] <- nrow(native.bird.BL)
+  #keep only occurrences that are within the buffered native range
+  native.bird.BL <- raster::intersect(native.bird,native.range.shp)                                             
+  # sample size after restriction
+  sp.nocc.end[x] <- nrow(native.bird.BL)
   
-  #select custom native range background: bioregions intersecting with occurrences
-  bioreg.birds <- raster::intersect(bioregs,native.bird.BL)
-  #plot(bioreg.birds)
-  #plot(native.range.shp,add=TRUE,col="blue")
-  #plot(native.bird.BL,add=TRUE,col="red")
+# 3) rarefy occurrrence data 
+  native.bird.rare <- sp::remove.duplicates(native.bird.BL, zero = 50) # WGS 84 units are meters
+  native.bird.rare <- native.bird.rare@data[,1:2] # to get data
+  # sample size of thinned dataset
+  sp.nocc.rare[x] <- nrow(native.bird.rare)
+  invasive.bird.rare <- sp::remove.duplicates(invasive.bird, zero = 50)
+  invasive.bird.rare <- invasive.bird.rare@data[,c(3,1,2)]
+  # number of occurrences in the invasive area after thinning
+  sp.nocc.inv.rare[x] <- nrow(invasive.bird.rare)
+    
+  #native.bird.rare <- humboldt.occ.rarefy(in.pts=native.bird,colxy=1:2, rarefy.dist = 50, rarefy.units = "km")
+  #invasive.bird.rare <- humboldt.occ.rarefy(in.pts=invasive.bird,colxy=1:2, rarefy.dist = 50, rarefy.units = "km") 
   
-  #rarefy occurrrence data 
-  native.bird.rare <- humboldt.occ.rarefy(in.pts=native.bird,colxy=1:2, rarefy.dist = 50, rarefy.units = "km")
-  invasive.bird.rare <- humboldt.occ.rarefy(in.pts=invasive.bird,colxy=1:2, rarefy.dist = 50, rarefy.units = "km") 
-  
-  #rarefied native range occurrence data WITH ENVIRONMENTAL DATA    
-  native.bird.rare.vars <-  data.frame(extract(ClimGridsPCA.native,native.bird.rare[c(1:2)]))
+# 4) Read PCA layers
+  pc.native <- raster(paste0("./bioreg_climgrids/",paste0(bird.species[x],"/"),
+                             bird.species[x],"_ClimGridsPCA.native.tif"))
+  pc.native <- stack(stack(),pc.native)
+  pc.invasive <- raster(paste0("./bioreg_climgrids/",paste0(bird.species[x],"/"),
+                               bird.species[x],"_ClimGridsPCA.invasive.tif"))
+
+# 5) Add environmental data to rarefied occurrences    
+  native.bird.rare.vars <- data.frame(extract(pc.native,
+                                              SpatialPoints(coords=native.bird.rare,
+                                                            proj4string=crs(native.range.shp))))
   native.bird.rare.vars$species <- rep(1,nrow(native.bird.rare.vars))
   native.bird.rare.vars <- na.omit(data.frame(native.bird.rare.vars,native.bird.rare[c(1:2)]))
   head(native.bird.rare.vars)
   nrow(native.bird.rare.vars)
+  
+    #select custom native range background: bioregions intersecting with occurrences
+  bioreg.birds <- raster::intersect(bioregs,native.bird.BL)
+  #plot(bioreg.birds)
+  #plot(native.range.shp,add=TRUE,col="blue")
+  #plot(native.bird.BL,add=TRUE,col="red")
   
   #select background data WITH ENVIRONMENTAL DATA 
   n.bg <- 1000    #number of background points to be selected randomly but excluding presence locations    
@@ -76,3 +101,8 @@ for (x in 1:length(bird.species)){
   head(species.data)
   
 }
+
+# Save summary information
+sum.table <- cbind(bird.species,sp.nocc.ini,sp.nocc.end,sp.nocc.envasive)
+colnames(sum.table) <- c("speciesID","N.initial","N.cleaned","N.invasive")
+### END
