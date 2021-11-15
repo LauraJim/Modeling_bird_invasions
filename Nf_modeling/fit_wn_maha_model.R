@@ -1,4 +1,4 @@
-# Functions: rs.inE, negloglike
+# Functions: negloglike, fitNiche
 # Laura Jimenez
 # First version: February 2020
 # Last version: June 2021
@@ -6,31 +6,26 @@
 # Description: ----------------------------------------------------------
 # Maximum likelihood approach of the fundamental niche estimation problem using 
 # a weighted distribution where the weights represent the availability of 
-# environmental combinations inside M. This approach contains three functions.
+# environmental combinations inside M and are calculated throught a kernel estimate,
+# and the model for the fundamental niche is a multivariate normal distribution
 
-## Parameters rs.inE:
-# region = a shapefile of the study area (polygon)
-# N = the sample size
-# Estck = a rasterstack that contains at least two layers with environmental data
-
-## Parameters negloglike
-# guess = a vector of length 5 when d=2, it contains the mu and A values as elements
+## Parameters in 'negloglike'
+# guess = a vector of length 5 when d=2, it contains the mu and A values as elements.
 # sam1 = matrix containing the original sample of environmental combinations that 
-#       correspond to presences
+#       correspond to presences.
 # sam2 = matrix containing a second random sample of environmental combinations 
-#       which come from the area of study (M)
+#       which come from the area of study (M).
 
-# rasterstack, shapefile and occurrence points
-
-# Calling packages
-
+## Parameters in 'fitNiche':
+# E.occ = a data frame or matrix whose columns contain the environmental values
+#         observed at the presence sites.
+# E.samM = a data frame or matrix whose columns contain the environmental values
+#         observed at the random sample covering the accessible area for the species.
+#         It must have the same number of columns as E.occ
 
 # FUNCTIONS -------------------------------------------------------------
 
 # Negative log-likelihood function for theta=(mu,A)
-## guess -- is a vector of length 5 when d=2, it contains the mu and A values as elements
-## sam1 -- matrix containing the original sample of environmental combinations that correspond to presences
-## sam2 -- matrix containing a second random sample of environmental combinations which come from the area of study (M)
 negloglike <- function(guess,sam1,sam2){
   # define the parameters of interest from the guess parameter
   mu <- guess[1:2]
@@ -46,7 +41,7 @@ negloglike <- function(guess,sam1,sam2){
   return(S)
 }
 
-# maximum likelihood
+# maximum likelihood estimation
 fitNiche <- function(E.occ, E.samM) {
   # calculate mu
   mu.ini <- colMeans(E.occ)
@@ -64,7 +59,7 @@ fitNiche <- function(E.occ, E.samM) {
   mle.A <- matrix(c(mle[3:4],mle[4:5]),nrow=2,ncol=2)
   mle.Sig <- tryCatch(expr={chol2inv(chol(mle.A))}, error= function(e){NULL})
 
-  # change column names for mle.Sig
+  # change column names of mle.Sig
   if(!is.null(mle.Sig)){
   colnames(mle.Sig) <- colnames(Sig.ini)
   rownames(mle.Sig) <- rownames(Sig.ini)
@@ -74,9 +69,7 @@ fitNiche <- function(E.occ, E.samM) {
   return(list(wn.mu = mle.mu, wn.sigma = mle.Sig, maha.mu = mu.ini, maha.sigma = Sig.ini))
 }
 
-
 ## Read libraries -------------- 
-# library(sp)
 library(raster)
 library(rgdal)
 library(rgeos)

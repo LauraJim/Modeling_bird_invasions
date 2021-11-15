@@ -1,5 +1,4 @@
 # Read functions
-source(".\\Nf_modeling\\random_sampling_inE.R")
 source(".\\Nf_modeling\\fit_wn_maha_model.R")
 
 # Packages
