@@ -2,17 +2,96 @@
 source(".\\Nf_modeling\\fit_wn_maha_model.R")
 
 # Packages
+library(scales)
 
+# Read species IDs
+sp.id <- read.csv("./Nf_modeling/allspecies_samplesizes.csv",header=T)[,c(1,4,6)]
 
-# Occurrence data and species IDs
-# native range, used to fit the models
-sp.occ.nat <- read.csv("./Nf_modeling/occ_native_range.csv",header=T)
-# invasive range, used to evaluate the models
-sp.occ.inv <- read.csv("./Nf_modeling/occ_invasive_range.csv",header=T)
-# species IDs
-(sp.ids <- unique(sp.occ.nat[,1]))
-# sample sizes
-n.occ <- table(as.factor(sp.occ.nat[,1]))
+# Summary table with estimated parameters
+mle.summary <- matrix(0,nrow = nrow(sp.id),ncol = 13)
+colnames(mle.summary) <- c("speciesID", "N", "wn.mu1", "wn.mu2", "wn.sigma11",
+                           "wn.sigma12", "wn.sigma22", "maha.mu1", "maha.mu2",
+                           "maha.sigma11", "maha.sigma12", "maha.sigma22","def.pos")
+# Confidence levels of ellipses in the figures
+lvs <- c(0.25,0.5,0.75,0.95)
+
+for (j in 1:length(sp.id)) {
+  j=1
+  # 1) Sample sizes
+  n.nat <- sp.id[j,2]
+  n.inv <- sp.id[j,3]
+  
+  # 2) Read occurrence data
+  # native range, used to fit the models
+  f.occ.nat <- paste0("./Nf_modeling/occurrences/",sp.id[j,1],"_native.csv")
+  sp.occ.nat <- read.csv(f.occ.nat,header=T)[,-1]
+  # invasive range, used to evaluate the models
+  f.occ.inv <- paste0("./Nf_modeling/occurrences/",sp.id[j,1],"_invasive.csv")
+  sp.occ.inv <- read.csv(f.occ.inv,header=T)[,-1]
+  
+  # 3) Read tables with random samples in the native and invaded areas
+  # native range, used to fit the models
+  f.rs.nat <- paste0("./Nf_modeling/accessible-areas/",sp.id[j,1],
+                     "_native_range.csv")
+  sp.rs.nat <- read.csv(f.rs.nat,header=T)[,-1]
+  # invasive range, used to evaluate the models
+  f.rs.inv <- paste0("./Nf_modeling/accessible-areas/",sp.id[j,1],
+                     "_invaded_region.csv")
+  sp.rs.inv <- read.csv(f.rs.inv,header=T)[,-1]
+  
+  # 4) Apply functions to estimate parameters
+  mle <- fitNiche(E.occ = sp.occ.nat[,3:4], E.samM = sp.rs.nat[,3:4])
+  # save resulting values in the summary table
+  
+  mle.summary[j,] <- c(sp.id[j,1],n.nat,mle$wn.mu, as.vector(mle$wn.sigma)[-2],
+                       mle$maha.mu, as.vector(mle$maha.sigma)[-2],mle$dp)
+  
+  # 5) Define ellipses using these estimates
+  ellis <- list()
+  for(i in 1:length(lvs)){
+    ellis[[i]] <- ellipse::ellipse(x=mle$wn.sigma, centre=as.numeric(mle$wn.mu), level=lvs[i])
+  }
+  
+  # 6) Visualization of results
+  # 6.1) set colorpalette: 
+  colpal <- c(alpha("grey70",0.7), alpha("gold3",0.7), "purple3", "grey10",
+              "brown")
+  # colpal[1] = random sample in accessible area (native range)
+  # colpal[2] = random sample in invaded region
+  # colpal[3] = fitted model for the fundamental niche
+  # colpal[4] = occurrences in accessible area
+  # colpal[5] = occurrences in invaded region
+  
+  # 6.2) PLOT
+  # plot will be saved as .png
+  png(paste0("./Generated_Data/Catasticta_nimbice","_mle.png"),width = 2300, height = 2300, 
+      res = 600, pointsize = 6)
+  # x11()
+  # background points from accessible area
+  plot(sp.rs.nat[,3:4],col=colpal[1],pch=1, xlab="PC1", ylab="PC2", cex.lab=1.3,
+       main="Environmental space")
+  # add points from invaded region
+  points(sp.rs.inv[,3:4],col=colpal[2],pch=1) 
+  # ellipse wn
+  for(x in 1:length(lvs)){lines(ellis[[x]],col=colpal[3],lwd=2)} 
+  # add centre of estimated niche
+  points(matrix(mle$wn.mu,ncol=2),col=colpal[3],pch=19,cex=1.5)
+  # add presence points used to fit model
+  points(sp.occ.nat[,3:4],col=colpal[4],pch=19,cex=1.3) 
+  # add presence points use to evaluate model
+  points(sp.occ.inv[,3:4],col=colpal[5],pch=17,cex=1.3)
+  # figure's legend
+  legend("bottomleft",legend = c(paste("Species ID:",sp.id[j,1]),"Native range",
+                              "Invaded region","Occurrences",
+                              "Recorded invasions", "Fitted model"),
+         pch=c(NA,19,19,19,17,NA),col = c("white", colpal[c(1:2,4:5,3)]),
+         lwd=c(rep(NA,5),2),bty = "n")
+  # finish saving png
+  dev.off()
+}
+
+# SAVE estimated parameters for all the species
+write.csv(mle.summary,"./Nf_modeling/mle_allspecies.csv",row.names = F)
 
 ### END ####
 # Laura Jimenez
