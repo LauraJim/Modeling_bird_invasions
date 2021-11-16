@@ -59,14 +59,25 @@ fitNiche <- function(E.occ, E.samM) {
   mle.A <- matrix(c(mle[3:4],mle[4:5]),nrow=2,ncol=2)
   mle.Sig <- tryCatch(expr={chol2inv(chol(mle.A))}, error= function(e){NULL})
 
-  # change column names of mle.Sig
-  if(!is.null(mle.Sig)){
-  colnames(mle.Sig) <- colnames(Sig.ini)
-  rownames(mle.Sig) <- rownames(Sig.ini)
+  # mle.Sig==NULL when the estimated matrix is not definite positive
+  if(is.null(mle.Sig)){
+    # try a different optimization method
+    find.mle <- optim(par=vals.ini, fn=like.fn, method="BFGS")
+    mle <- find.mle$par
+    mle.mu <- mle[1:2]
+    mle.A <- matrix(c(mle[3:4],mle[4:5]),nrow=2,ncol=2)
+    mle.Sig <- tryCatch(expr={chol2inv(chol(mle.A))}, error= function(e){NULL})
+    def.pos <- ifelse(is.null(mle.Sig),1,0)
+  } else{ 
+    # change column names of mle.Sig
+    colnames(mle.Sig) <- colnames(Sig.ini)
+    rownames(mle.Sig) <- rownames(Sig.ini)
+    def.pos <- 1
   }
     
   # wn = weighted normal distribution
-  return(list(wn.mu = mle.mu, wn.sigma = mle.Sig, maha.mu = mu.ini, maha.sigma = Sig.ini))
+  return(list(wn.mu = mle.mu, wn.sigma = mle.Sig, maha.mu = mu.ini, 
+              maha.sigma = Sig.ini, dp = def.pos))
 }
 
 ## Read libraries -------------- 
