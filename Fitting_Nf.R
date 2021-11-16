@@ -16,7 +16,6 @@ colnames(mle.summary) <- c("speciesID", "N", "wn.mu1", "wn.mu2", "wn.sigma11",
 lvs <- c(0.25,0.5,0.75,0.95)
 
 for (j in 1:length(sp.id)) {
-  j=1
   # 1) Sample sizes
   n.nat <- sp.id[j,2]
   n.inv <- sp.id[j,3]
@@ -46,52 +45,57 @@ for (j in 1:length(sp.id)) {
   mle.summary[j,] <- c(sp.id[j,1],n.nat,mle$wn.mu, as.vector(mle$wn.sigma)[-2],
                        mle$maha.mu, as.vector(mle$maha.sigma)[-2],mle$dp)
   
-  # 5) Define ellipses using these estimates
-  ellis <- list()
-  for(i in 1:length(lvs)){
-    ellis[[i]] <- ellipse::ellipse(x=mle$wn.sigma, centre=as.numeric(mle$wn.mu), level=lvs[i])
-  }
+  if(mle$dp==1){
+    # 5) Define ellipses using these estimates
+    ellis <- list()
+    for(i in 1:length(lvs)){
+      ellis[[i]] <- ellipse::ellipse(x=mle$wn.sigma, centre=as.numeric(mle$wn.mu), level=lvs[i])
+    }
+    
+    # 6) Visualization of results
+    # 6.1) set colorpalette: 
+    colpal <- c(alpha("grey70",0.7), alpha("gold3",0.7), "purple3", "grey10",
+                "brown")
+    # colpal[1] = random sample in accessible area (native range)
+    # colpal[2] = random sample in invaded region
+    # colpal[3] = fitted model for the fundamental niche
+    # colpal[4] = occurrences in accessible area
+    # colpal[5] = occurrences in invaded region
+    
+    # 6.2) PLOT
+    # plot will be saved as .png
+    png(paste0("./Nf_modeling/Results/",sp.id[j,1],"_modelfit.png"),
+        width = 1800, height = 1800, res = 300, pointsize = 8)
+    # x11()
+    # background points from accessible area
+    plot(sp.rs.nat[,3:4],col=colpal[1],pch=1, xlab="PC1", ylab="PC2", cex.lab=1.3,
+         main="Environmental space")
+    # add points from invaded region
+    points(sp.rs.inv[,3:4],col=colpal[2],pch=1) 
+    # ellipse wn
+    for(x in 1:length(lvs)){lines(ellis[[x]],col=colpal[3],lwd=2)} 
+    # add centre of estimated niche
+    points(matrix(mle$wn.mu,ncol=2),col=colpal[3],pch=19,cex=1.5)
+    # add presence points used to fit model
+    points(sp.occ.nat[,3:4],col=colpal[4],pch=19,cex=1.3) 
+    # add presence points use to evaluate model
+    points(sp.occ.inv[,3:4],col=colpal[5],pch=17,cex=1.3)
+    # figure's legend
+    legend("bottomleft",legend = c(paste("Species ID:",sp.id[j,1]),"Native range",
+                                   "Invaded region","Occurrences",
+                                   "Recorded invasions", "Fitted model"),
+           pch=c(NA,19,19,19,17,NA),col = c("white", colpal[c(1:2,4:5,3)]),
+           lwd=c(rep(NA,5),2),bty = "n")
+    # finish saving png
+    dev.off()
+  } else print(paste("Estimated matrix is not positive definite for species:",
+                     sp.id[j,1]))
   
-  # 6) Visualization of results
-  # 6.1) set colorpalette: 
-  colpal <- c(alpha("grey70",0.7), alpha("gold3",0.7), "purple3", "grey10",
-              "brown")
-  # colpal[1] = random sample in accessible area (native range)
-  # colpal[2] = random sample in invaded region
-  # colpal[3] = fitted model for the fundamental niche
-  # colpal[4] = occurrences in accessible area
-  # colpal[5] = occurrences in invaded region
-  
-  # 6.2) PLOT
-  # plot will be saved as .png
-  png(paste0("./Generated_Data/Catasticta_nimbice","_mle.png"),width = 2300, height = 2300, 
-      res = 600, pointsize = 6)
-  # x11()
-  # background points from accessible area
-  plot(sp.rs.nat[,3:4],col=colpal[1],pch=1, xlab="PC1", ylab="PC2", cex.lab=1.3,
-       main="Environmental space")
-  # add points from invaded region
-  points(sp.rs.inv[,3:4],col=colpal[2],pch=1) 
-  # ellipse wn
-  for(x in 1:length(lvs)){lines(ellis[[x]],col=colpal[3],lwd=2)} 
-  # add centre of estimated niche
-  points(matrix(mle$wn.mu,ncol=2),col=colpal[3],pch=19,cex=1.5)
-  # add presence points used to fit model
-  points(sp.occ.nat[,3:4],col=colpal[4],pch=19,cex=1.3) 
-  # add presence points use to evaluate model
-  points(sp.occ.inv[,3:4],col=colpal[5],pch=17,cex=1.3)
-  # figure's legend
-  legend("bottomleft",legend = c(paste("Species ID:",sp.id[j,1]),"Native range",
-                              "Invaded region","Occurrences",
-                              "Recorded invasions", "Fitted model"),
-         pch=c(NA,19,19,19,17,NA),col = c("white", colpal[c(1:2,4:5,3)]),
-         lwd=c(rep(NA,5),2),bty = "n")
-  # finish saving png
-  dev.off()
+  # 7) SAVE estimated parameters for all the species
+  if(j==length(sp.id))
+    write.csv(mle.summary,"./Nf_modeling/mle_allspecies.csv",row.names = F)
 }
 
-# SAVE estimated parameters for all the species
-write.csv(mle.summary,"./Nf_modeling/mle_allspecies.csv",row.names = F)
 
 ### END ####
 # Laura Jimenez
