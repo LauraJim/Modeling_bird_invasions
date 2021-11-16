@@ -126,7 +126,6 @@ for (j in 1:nrow(sp.id)) {
     write.csv(mle.summary,"./Nf_modeling/mle_allspecies.csv",row.names = F)
 }
 
-# start 4:17 pm, end 
 
 ### END ####
 # Laura Jimenez
