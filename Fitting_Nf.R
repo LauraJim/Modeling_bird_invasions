@@ -50,7 +50,7 @@ for (j in 1:nrow(sp.id)) {
   mle <- fitNiche(E.occ = sp.occ.nat[,3:4], E.samM = sp.rs.nat[,3:4])
   
   # 5)
-  if(mle$dp==1){ # Check estimated parameters
+  if(mle$dp > 0){ # Sigma is positive definite
     # 5.1) Save estimated parameters in the summary table
     mle.summary[j,] <- c(sp.id[j,1],n.nat,mle$wn.mu,
                          as.vector(mle$wn.sigma)[-2],mle$dp)
@@ -94,6 +94,10 @@ for (j in 1:nrow(sp.id)) {
     # 5.1) save Mahalanobis model in the summary table
     mle.summary[j,] <- c(sp.id[j,1], n.nat, mle$maha.mu,
                          as.vector(mle$maha.sigma)[-2],mle$dp)
+    # Warning message
+    print(paste("Warning!","Estimated matrix is not positive definite for species:",
+                sp.id[j,1]))
+    
     # 5.3) PLOT
     # plot will be saved as .png
     png(paste0("./Nf_modeling/Results/",sp.id[j,1],"_modelfit.png"),
@@ -115,15 +119,11 @@ for (j in 1:nrow(sp.id)) {
            pch=c(NA,19,19,19,17),col = c("white", colpal[c(1:2,4:5)]),bty = "n")
     # finish saving png
     dev.off()
-    
-    # Warning message
-    print(paste("Warning!","Estimated matrix is not positive definite for species:",
-                sp.id[j,1]))
   }
   
   # 7) SAVE estimated parameters for all the species
   if(j==nrow(sp.id))
-    write.csv(mle.summary,"./Nf_modeling/mle_allspecies.csv",row.names = F)
+    write.csv(mle.summary,"./Nf_modeling/Results/mle_allspecies.csv",row.names = F)
 }
 
 

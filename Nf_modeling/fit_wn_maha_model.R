@@ -67,7 +67,7 @@ fitNiche <- function(E.occ, E.samM) {
     mle.mu <- mle[1:2]
     mle.A <- matrix(c(mle[3:4],mle[4:5]),nrow=2,ncol=2)
     mle.Sig <- tryCatch(expr={chol2inv(chol(mle.A))}, error= function(e){NULL})
-    def.pos <- ifelse(is.null(mle.Sig),0,1)
+    def.pos <- ifelse(is.null(mle.Sig),0,2)
   } else{ 
     # change column names of mle.Sig
     colnames(mle.Sig) <- colnames(Sig.ini)
