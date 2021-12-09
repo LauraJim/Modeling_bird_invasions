@@ -3,8 +3,8 @@ source(".\\Nf_modeling\\nicheG.R")
 
 # read table of a species occurrence with environmental data points and table 
 #  with random background points that contain environmental data
-species <- read.csv("./Nf_modeling/occurrences/estmel_native.csv",header=T)[,-1]
-ranpoints <- read.csv("./Nf_modeling/accessible-areas/estmel_native_range.csv",header=T)[,-1]
+species <- read.csv("./Nf_modeling/occurrences-v2/plomel_native.csv",header=T)[,-1]
+ranpoints <- read.csv("./Nf_modeling/accessible-areas-v2/plomel_native_range.csv",header=T)[,-1]
 
 # Plot datasets in both Geographic and Environmental spaces
 GE.space(bckgrnd=ranpoints, GE.occ=species)

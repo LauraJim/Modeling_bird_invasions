@@ -64,18 +64,18 @@ GE.space <- function(bckgrnd, GE.occ, add.poly = NULL, save.p = NULL) {
     
     # create new data-frame with combined environmental data of random background 
     # points and occurrence.
-    bckgrnd3 <- data.frame(Temperature = bckgrnd[, 3], Precipitation = bckgrnd[, 4])
-    occ3 <- data.frame(Temperature = GE.occ[, 3], Precipitation = GE.occ [, 4])
+    bckgrnd3 <- data.frame(PC1 = bckgrnd[, 3], PC2 = bckgrnd[, 4])
+    occ3 <- data.frame(PC1 = GE.occ[, 3], PC2 = GE.occ [, 4])
     data3 <- cbind(rbind(bckgrnd3[,1:2],occ3[,1:2]),
                    # an extra column is added to differentiate bckgrnd and GE.occ 
                    # (1 for bckgrnd, 2 for GE.occ)
                    c(rep(1,nrow(bckgrnd3)),rep(2,nrow(occ3))))
     # rename columns
-    data4 <- data.frame(Temperature = data3[, 1], Precipitation = data3[, 2], 
+    data4 <- data.frame(PC1 = data3[, 1], PC2 = data3[, 2], 
                         Type = data3[,3])
     
     # create plot for E-Space
-    p2 <- ggplot(data4, aes(x = Temperature, y = Precipitation, 
+    p2 <- ggplot(data4, aes(x = PC1, y = PC2, 
                             color = factor(Type), shape = factor(Type))) +
       geom_point() +
       scale_shape_manual(values=c(pch.shape,19), guide = FALSE) +
@@ -146,14 +146,14 @@ GE.space <- function(bckgrnd, GE.occ, add.poly = NULL, save.p = NULL) {
     
     ## Environmental Space:
     # same code as the environmental space above
-    bckgrnd3 <- data.frame(Temperature = bckgrnd[, 3], Precipitation = bckgrnd[, 4])
-    occ3 <- data.frame(Temperature = GE.occ[, 3], Precipitation = GE.occ[, 4])
+    bckgrnd3 <- data.frame(PC1 = bckgrnd[, 3], PC2 = bckgrnd[, 4])
+    occ3 <- data.frame(PC1 = GE.occ[, 3], PC2 = GE.occ[, 4])
     data3 <- cbind(rbind(bckgrnd3[,1:2],occ3[,1:2]),
                    c(rep(1,nrow(bckgrnd3)),rep(2,nrow(occ3))))
-    data4 <- data.frame(Temperature = data3[, 1], Precipitation = data3[, 2], 
+    data4 <- data.frame(PC1 = data3[, 1], PC2 = data3[, 2], 
                         Type = data3[,3])
     
-    p4 <- ggplot(data4, aes(x = Temperature, y = Precipitation, 
+    p4 <- ggplot(data4, aes(x = PC1, y = PC2, 
                             color = factor(Type), shape = factor(Type))) +
       geom_point() +
       scale_shape_manual(values=c(pch.shape,19), guide = FALSE) +
