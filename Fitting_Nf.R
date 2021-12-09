@@ -5,7 +5,7 @@ source(".\\Nf_modeling\\fit_wn_maha_model.R")
 library(scales)
 
 # Read species IDs
-sp.id <- read.csv("./Nf_modeling/allspecies_samplesizes.csv",header=T)[,c(1,4,6)]
+sp.id <- read.csv("./Nf_modeling/allspecies_samplesizes_v2.csv",header=T)[,c(1,4,6)]
 
 # Summary table with estimated parameters
 mle.summary <- matrix(0,nrow = nrow(sp.id),ncol = 8)
@@ -30,19 +30,19 @@ for (j in 1:nrow(sp.id)) {
   
   # 2) Read occurrence data
   # native range, used to fit the models
-  f.occ.nat <- paste0("./Nf_modeling/occurrences/",sp.id[j,1],"_native.csv")
+  f.occ.nat <- paste0("./Nf_modeling/occurrences-v2/",sp.id[j,1],"_native.csv")
   sp.occ.nat <- read.csv(f.occ.nat,header=T)[,-1]
   # invasive range, used to evaluate the models
-  f.occ.inv <- paste0("./Nf_modeling/occurrences/",sp.id[j,1],"_invasive.csv")
+  f.occ.inv <- paste0("./Nf_modeling/occurrences-v2/",sp.id[j,1],"_invasive.csv")
   sp.occ.inv <- read.csv(f.occ.inv,header=T)[,-1]
   
   # 3) Read tables with random samples in the native and invaded areas
   # native range, used to fit the models
-  f.rs.nat <- paste0("./Nf_modeling/accessible-areas/",sp.id[j,1],
+  f.rs.nat <- paste0("./Nf_modeling/accessible-areas-v2/",sp.id[j,1],
                      "_native_range.csv")
   sp.rs.nat <- read.csv(f.rs.nat,header=T)[,-1]
   # invasive range, used to evaluate the models
-  f.rs.inv <- paste0("./Nf_modeling/accessible-areas/",sp.id[j,1],
+  f.rs.inv <- paste0("./Nf_modeling/accessible-areas-v2/",sp.id[j,1],
                      "_invaded_region.csv")
   sp.rs.inv <- read.csv(f.rs.inv,header=T)[,-1]
   
@@ -65,7 +65,7 @@ for (j in 1:nrow(sp.id)) {
   
     # 5.3) PLOT
     # plot will be saved as .png
-    png(paste0("./Nf_modeling/Results/",sp.id[j,1],"_modelfit.png"),
+    png(paste0("./Nf_modeling/Results-v2/",sp.id[j,1],"_modelfit.png"),
         width = 1800, height = 1800, res = 300, pointsize = 8)
     # x11()
     # background points from accessible area
@@ -100,7 +100,7 @@ for (j in 1:nrow(sp.id)) {
     
     # 5.3) PLOT
     # plot will be saved as .png
-    png(paste0("./Nf_modeling/Results/",sp.id[j,1],"_modelfit.png"),
+    png(paste0("./Nf_modeling/Results-v2/",sp.id[j,1],"_modelfit.png"),
         width = 1800, height = 1800, res = 300, pointsize = 8)
     # x11()
     # background points from accessible area
@@ -123,7 +123,7 @@ for (j in 1:nrow(sp.id)) {
   
   # 7) SAVE estimated parameters for all the species
   if(j==nrow(sp.id))
-    write.csv(mle.summary,"./Nf_modeling/Results/mle_allspecies.csv",row.names = F)
+    write.csv(mle.summary,"./Nf_modeling/Results-v2/mle_allspecies.csv",row.names = F)
 }
 
 
