@@ -27,9 +27,13 @@
 niche.G <- function(Estck, mu, Sigma) {
   # calculate suitability for each cell
   sui.fun <- function(cell){
-    X <- as.vector(cell, mode = "numeric")
-    sui.ind <- exp(-mahalanobis(x= X, center= mu, cov= Sigma)/2)
-    return(sui.ind)
+    if(anyNA(cell)){
+      return(NA)
+    } else {
+      X <- as.vector(cell, mode = "numeric")
+      sui.ind <- exp(-mahalanobis(x= X, center= mu, cov= Sigma)/2)
+      return(sui.ind)
+    }
   }
   # apply this function to the whole raster layer
   suit.rast <- calc(Estck,fun=sui.fun)
