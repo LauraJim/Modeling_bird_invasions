@@ -7,7 +7,7 @@ mles <- read.csv("./Nf_modeling/Results-v3/mle_allspecies_v3.csv",header=T)
 
 # Project models to geographic space in the native and invaded regions
 
-for (k in 2:nrow(mles)) {
+for (k in 1:nrow(mles)) {
   # Select species
   species.id <- mles[k,1]
   
@@ -18,6 +18,8 @@ for (k in 2:nrow(mles)) {
   suit.wn.nat <- niche.G(Estck = pc.native, mu = c(mles[k,3],mles[k,4]), 
                        Sigma = matrix(c(mles[k,5], mles[k,6], mles[k,6], 
                                         mles[k,7]),ncol=2))
+  writeRaster(suit.wn.nat,paste0("./Nf_modeling/Results-v3/",species.id,
+                             "_suitability_map_nat.tif"), overwrite = T)
   # Project model into the invaded region
   pc.invasive <- stack(paste0("./bioreg_occ_dist_climgrids/",paste0(species.id,"/"),
                               species.id,"_ClimGridsPCA.invasive.tif"))
@@ -26,8 +28,6 @@ for (k in 2:nrow(mles)) {
                      Sigma = matrix(c(mles[k,5], mles[k,6], mles[k,6], 
                                       mles[k,7]),ncol=2))
   
-  writeRaster(suit.wn.nat,paste0("./Nf_modeling/Results-v3/",species.id,
-                             "_suitability_map_nat.tif"), overwrite = T)
   writeRaster(suit.wn.inv,paste0("./Nf_modeling/Results-v3/",species.id,
                              "_suitability_map_inv.tif"), overwrite = T)
 }
