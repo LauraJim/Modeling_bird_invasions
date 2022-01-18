@@ -92,7 +92,7 @@ for (x in 1:length(bird.species)){
                                          species.id,"_invasive.csv"))
  
 # 7) Select random points inside accessible area and add PC values
-  N <- 5000        
+  N <- 10000        
   rp.aa <- data.frame(randomPoints(pc.native,N,p=native.bird.rare,excludep=T))
   rp.aa.vars <- data.frame(extract(pc.native,rp.aa))
   rp.aa.vars <- na.omit(data.frame(rp.aa,rp.aa.vars))
@@ -101,7 +101,7 @@ for (x in 1:length(bird.species)){
                                          species.id,"_native_range.csv"))
   
 # 8) Create table with random points inside the invaded region
-  rp.ir <- data.frame(randomPoints(pc.invasive,N,p=invasive.bird.rare,excludep=T))
+  rp.ir <- data.frame(randomPoints(pc.invasive,N/2,p=invasive.bird.rare,excludep=T))
   rp.ir.vars <- data.frame(extract(pc.invasive,rp.ir))
   rp.ir.vars <- na.omit(data.frame(rp.ir,rp.ir.vars))
   colnames(rp.ir.vars) <- c("lon","lat","PC1","PC2")
