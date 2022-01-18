@@ -1,8 +1,6 @@
 .Rproj.user
 .Rhistory
 .Rdata
-biogeo
 bioreg_climgrids
-occurrences
-ranges
+occ_dist_climgrids
 worldclimv2
