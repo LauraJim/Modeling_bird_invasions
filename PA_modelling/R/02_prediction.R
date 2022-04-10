@@ -1,15 +1,21 @@
+# set working directory to this script's location:
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
+
 # LOAD PACKAGES ####
 
 library(terra)
 library(embarcadero)
 library(fuzzySim)
 library(modEvA)
+library(maps)
 
 
 # CREATE OUTPUT FOLDERS ####
 
 dir.create("../pred_rasters/native", recursive = TRUE)
 dir.create("../pred_rasters/invasive", recursive = TRUE)
+dir.create("../pred_JPGs", recursive = TRUE)
 
 
 # GET TARGET SPECIES ####
@@ -20,14 +26,14 @@ occ_files
 species_list <- unique(sapply(strsplit(basename(tools::file_path_sans_ext(occ_files)), "_"), `[`, 1))
 species_list
 
-# "psikra" crashes my RStudio when predicting on raster, so leave it out for now:
-species_list <- species_list[-grep("psikra", species_list)]
-species_list
-
 
 # GET MODEL PREDICTION RASTERS FOR EACH SPECIES ####
 
-for (species in species_list) {
+# "psikra" was crashing my RStudio when predicting on raster, so left it out initially:
+# species_list[-grep("psikra", species_list)]
+# and then ran it on its own in a new R session after restarting the computer
+
+for (species in species_list[grep("psikra", species_list)]) {
   
   #pa_nat$glm_p <- predict(mod_glm, pa_nat, type = "response")
   #pred_bart <- predict_bart_df(mod_bart, pa_nat, quantiles = c(0.025, 0.975))
@@ -60,6 +66,7 @@ for (species in species_list) {
   message(" - BART...")
   bart_p_nat <- predict(mod_bart, raster::stack(climgrids_nat))
   bart_p_nat <- rast(bart_p_nat)
+  gc()
   bart_p_inv <- predict(mod_bart, raster::stack(climgrids_inv))
   bart_p_inv <- rast(bart_p_inv)
   
@@ -83,3 +90,27 @@ for (species in species_list) {
   gc()
 }  # end predicting
 
+
+# GET PREDICTION RASTER MAP FILE NAMES ####
+
+pred_files_nat <- list.files("../pred_rasters/native", full.names = TRUE)
+pred_files_nat <- pred_files_nat[grep("_f_", pred_files_nat)]
+pred_files_nat
+
+pred_files_inv <- list.files("../pred_rasters/invasive", full.names = TRUE)
+pred_files_inv <- pred_files_inv[grep("_f_", pred_files_inv)]
+pred_files_inv
+
+
+# IMPORT EACH RASTER AND SAVE AS JPG ####
+
+for (f in c(pred_files_nat, pred_files_inv)) {
+  rst <- rast(f)
+  filename <- basename(tools::file_path_sans_ext(f))
+  species <- sapply(strsplit(filename, "_"), `[`, 1)
+  jpeg(paste0("../pred_JPGs/", filename, ".jpg"), width = 800, height = 430)
+  maps::map("world", col = "grey", mar = c(1, 1, 2, 6))
+  plot(rst, col = hcl.colors(100), range = c(0, 1), add = TRUE)
+  title(basename(tools::file_path_sans_ext(f)))
+  dev.off()
+}
