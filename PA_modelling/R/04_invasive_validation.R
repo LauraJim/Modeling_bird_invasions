@@ -102,6 +102,9 @@ head(eval_metrics_eur_full)
 head(eval_metrics_inv_mess)
 
 
+mtp_thresholds <- data.frame(species = species_list, glm_thresh = NA_real_, bart_thresh = NA_real_)
+
+
 # fill the tables with the results:
 
 for (species in species_list) {
@@ -118,6 +121,8 @@ for (species in species_list) {
   bart_pred_occnat <- terra::extract(bart_pred_nat_rst, occ_nat[ , c("lon", "lat")])[,2]
   glm_min_2.5_thresh <- quantile(glm_pred_occnat, probs = 0.025, na.rm = TRUE)
   bart_min_2.5_thresh <- quantile(bart_pred_occnat, probs = 0.025, na.rm = TRUE)
+  mtp_thresholds[mtp_thresholds$species == species, "glm_thresh"] <- glm_min_2.5_thresh
+  mtp_thresholds[mtp_thresholds$species == species, "bart_thresh"] <- bart_min_2.5_thresh
   
   # import invasive occurrence data and pred rasters:
   dat_inv <- read.csv(paste0("../inv_region_tables/", species, "_inv_region_table.csv"))
@@ -172,6 +177,10 @@ for (species in species_list) {
 
 # see and plot eval metrics:
 
+mtp_thresholds
+range(sort(mtp_thresholds$glm_thresh))
+range(sort(mtp_thresholds$bart_thresh))
+
 head(eval_metrics_eur_full)
 head(eval_metrics_eur_mess)
 head(eval_metrics_inv_full)
@@ -185,9 +194,12 @@ for (species in species_list) {
 }
 
 
-# export eval metrics:
+# export thresholds and eval metrics:
 
 dir.create("../eval_metrics")
+
+write.csv(mtp_thresholds, "../eval_metrics/mtp_thresholds.csv", row.names = FALSE)
+
 write.csv(data.frame(species = rownames(eval_metrics_eur_full), eval_metrics_eur_full), "../eval_metrics/eval_metrics_eur_full.csv", row.names = FALSE)
 write.csv(data.frame(species = rownames(eval_metrics_eur_mess), eval_metrics_eur_mess), "../eval_metrics/eval_metrics_eur_mess.csv", row.names = FALSE)
 write.csv(data.frame(species = rownames(eval_metrics_inv_full), eval_metrics_inv_full), "../eval_metrics/eval_metrics_inv_full.csv", row.names = FALSE)
