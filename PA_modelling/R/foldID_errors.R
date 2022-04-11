@@ -40,4 +40,4 @@
 # 
 # species_list
 # species_list[5:length(species_list)]
-# 
+species_list[(grep(species, species_list)+1):length(species_list)]

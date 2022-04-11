@@ -36,7 +36,8 @@ for (species in species_list) {
   #head(acc_nat)
   species_data <- vect(rbind(occ_nat[ , c("lon", "lat")], acc_nat[ , c("lon", "lat")]))
   
-  blocks[[species]] <- spatialBlock(speciesData = as(species_data, "Spatial"), theRange = block_size, k = 5, selection = "systematic")
+  set.seed(grep(species, species_list))
+  blocks[[species]] <- spatialBlock(speciesData = as(species_data, "Spatial"), theRange = block_size, k = 5, selection = "random")
 }
 
 
@@ -54,8 +55,11 @@ blocks[[spc]]$foldID
 source("https://raw.githubusercontent.com/AMBarbosa/unpackaged/master/predict_bart_df")  # I edited the BART predict function to work with data frames instead of just raster layers
 
 dir.create("../pred_CSVs")
+dir.create("../CV_blocks")
+
 
 for (species in species_list) {
+  #species_list[(grep(species, species_list)+1):length(species_list)]
   message("\n", species)
   
   # import native occurrences and accessible (background) points:
@@ -80,6 +84,16 @@ for (species in species_list) {
   # head(pa_nat)
   # sum(pa_nat$presence == 1)
   # sum(pa_nat$presence == 0)
+  
+  # plot spatial blocks with occ data:
+  jpeg(paste0("../CV_blocks/", species, ".jpg"), width = 500, height = 500)
+  plot(trim(climgrids_nat[[1]]), xlim = ext(blocks[[species]]$blocks)[1:2], ylim = ext(blocks[[species]]$blocks)[3:4], col = "wheat2", legend = FALSE, main = species, cex.main = 2)
+  plot(blocks[[species]]$blocks, border = "grey40", add = TRUE)
+  points(pa_nat[pa_nat$presence == 0, c("lon", "lat")], pch = 20, cex = 0.1, col = "salmon")
+  text(blocks[[species]]$blocks, blocks[[species]]$blocks$folds, col = blocks[[species]]$blocks$folds, halo = TRUE)  # col = c("black", "blue", "red", "darkgreen", "purple")
+  points(pa_nat[pa_nat$presence == 1, c("lon", "lat")], pch = 20, cex = 0.8, col = "blue")
+  legend("topleft", c("presence", "absence"), pch = c(19, 20), col = c("blue", "salmon"), bty = "n")
+  dev.off()
   
   # add spatial block ID:
   pa_nat$foldID <- blocks[[species]]$foldID
@@ -106,6 +120,7 @@ for (species in species_list) {
   }  # end for f
   
   # get prediction for entire native dataset (no folds):
+  message("full dataset")
   mod_glm <- glm(formula = form_glm, family = binomial, data = pa_nat)
   mod_bart <- bart(x.train = pa_nat[ , var_names], y.train = pa_nat[ , "presence"], keeptrees = TRUE, verbose = FALSE)
   pa_nat[ , paste0("glm_p")] <- predict(mod_glm, pa_nat, type = "response")

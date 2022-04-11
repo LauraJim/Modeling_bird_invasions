@@ -8,7 +8,7 @@ library(terra)
 library(modEvA)
 library(kuenm)
 library(raster)
-library(ecospat)
+#library(ecospat)
 
 
 # GET TARGET SPECIES ####
@@ -180,16 +180,16 @@ head(eval_metrics_inv_mess)
 for (species in species_list) {
   barplot(as.matrix(eval_metrics_eur_full[species, ]), las = 2, main = paste(species, "Eur full"))
   barplot(as.matrix(eval_metrics_eur_mess[species, ]), las = 2, main = paste(species, "Eur MESS"))
-  barplot(as.matrix(eval_metrics_inv_full[species, ]), las = 2, main = paste(species, "Inv full"))
-  barplot(as.matrix(eval_metrics_inv_mess[species, ]), las = 2, main = paste(species, "Inv MESS"))
+  barplot(as.matrix(eval_metrics_inv_full[species, ]), las = 2, main = paste(species, "inv full"))
+  barplot(as.matrix(eval_metrics_inv_mess[species, ]), las = 2, main = paste(species, "inv MESS"))
 }
 
 
 # export eval metrics:
 
 dir.create("../eval_metrics")
-write.csv(eval_metrics_eur_full, "../eval_metrics/eval_metrics_eur_full.csv", row.names = FALSE)
-write.csv(eval_metrics_eur_mess, "../eval_metrics/eval_metrics_eur_mess.csv", row.names = FALSE)
-write.csv(eval_metrics_inv_full, "../eval_metrics/eval_metrics_inv_full.csv", row.names = FALSE)
-write.csv(eval_metrics_inv_mess, "../eval_metrics/eval_metrics_inv_mess.csv", row.names = FALSE)
+write.csv(data.frame(species = rownames(eval_metrics_eur_full), eval_metrics_eur_full), "../eval_metrics/eval_metrics_eur_full.csv", row.names = FALSE)
+write.csv(data.frame(species = rownames(eval_metrics_eur_mess), eval_metrics_eur_mess), "../eval_metrics/eval_metrics_eur_mess.csv", row.names = FALSE)
+write.csv(data.frame(species = rownames(eval_metrics_inv_full), eval_metrics_inv_full), "../eval_metrics/eval_metrics_inv_full.csv", row.names = FALSE)
+write.csv(data.frame(species = rownames(eval_metrics_inv_mess), eval_metrics_inv_mess), "../eval_metrics/eval_metrics_inv_mess.csv", row.names = FALSE)
 
