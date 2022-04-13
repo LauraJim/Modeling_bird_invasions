@@ -8,6 +8,7 @@ library(terra)
 library(embarcadero)
 library(blockCV)
 library(modEvA)
+library(kuenm)
 
 
 # GET TARGET SPECIES ####
@@ -19,44 +20,20 @@ species_list <- unique(sapply(strsplit(basename(tools::file_path_sans_ext(occ_fi
 species_list
 
 
-# DIVIDE EACH NATIVE RANGE INTO SPATIAL BLOCKS ####
+# GET SPATIAL BLOCK PREDICTIONS FOR CROSS-VALIDATION ####
+
+dir.create("../CV_blocks")
+dir.create("../pred_CSVs")
+
+source("https://raw.githubusercontent.com/AMBarbosa/unpackaged/master/predict_bart_df")  # I edited the BART predict function to work with data frames instead of raster layers
 
 block_size <- 200000
 
 blocks <- vector("list", length(species_list))
 names(blocks) <- species_list
 
-for (species in species_list) {
-  message("\n", species, "...")
 
-  # import native occurrences and accessible (background) points:
-  occ_nat <- read.csv(paste0("../../Nf_modeling/occurrences-v3/", species, "_native.csv"))
-  #head(occ_nat)
-  acc_nat <- read.csv(paste0("../../Nf_modeling/accessible-areas-v3/", species, "_native_range.csv"))
-  #head(acc_nat)
-  species_data <- vect(rbind(occ_nat[ , c("lon", "lat")], acc_nat[ , c("lon", "lat")]))
-  
-  set.seed(grep(species, species_list))
-  blocks[[species]] <- spatialBlock(speciesData = as(species_data, "Spatial"), theRange = block_size, k = 5, selection = "random")
-}
-
-
-spc <- "agaper"
-blocks
-blocks[[spc]]
-plot(blocks[[spc]]$blocks)
-blocks[[spc]]$plots
-blocks[[spc]]$folds
-blocks[[spc]]$foldID
-
-
-# GET PREDICTIONS FOR BLOCK CROSS-VALIDATION ####
-
-source("https://raw.githubusercontent.com/AMBarbosa/unpackaged/master/predict_bart_df")  # I edited the BART predict function to work with data frames instead of just raster layers
-
-dir.create("../pred_CSVs")
-dir.create("../CV_blocks")
-
+# species <- "agaper"
 
 for (species in species_list) {
   #species_list[(grep(species, species_list)+1):length(species_list)]
@@ -84,6 +61,13 @@ for (species in species_list) {
   # head(pa_nat)
   # sum(pa_nat$presence == 1)
   # sum(pa_nat$presence == 0)
+  pa_nat_sv <- vect(pa_nat, geom = c("lon", "lat"), crs = "epsg:4326")
+  # nrow(pa_nat_sv)
+  
+  #block_size <- expanse(convHull(pa_nat_sv)) / 10000000
+
+  message("computing spatial blocks...")
+  blocks[[species]] <- spatialBlock(speciesData = as(pa_nat_sv, "Spatial"), species = "presence", theRange = block_size, k = 5, selection = "random", showBlocks = FALSE, seed = grep(species, species_list))
   
   # plot spatial blocks with occ data:
   jpeg(paste0("../CV_blocks/", species, ".jpg"), width = 500, height = 500)
@@ -99,6 +83,7 @@ for (species in species_list) {
   pa_nat$foldID <- blocks[[species]]$foldID
   
   # compute cross-validation models:
+  message("computing fold models...")
   #names(pa_nat)
   #var_names <- names(pa_nat)[grep("^PC", names(pa_nat))]
   var_names <- c("PC1", "PC2")
@@ -111,7 +96,7 @@ for (species in species_list) {
     
     mod_glm <- glm(formula = form_glm, family = binomial, data = pa_train)
     mod_bart <- bart(x.train = pa_train[ , var_names], y.train = pa_train[ , "presence"], keeptrees = TRUE, verbose = FALSE)
-
+    
     pa_nat[ , paste0("glm_p_fold", f)] <- predict(mod_glm, pa_nat, type = "response")
     pa_nat[ , paste0("bart_p_fold", f)] <- predict_bart_df(mod_bart, pa_nat)
     #head(pa_nat)
@@ -128,50 +113,68 @@ for (species in species_list) {
   
   # save result to disk:
   write.csv(pa_nat, paste0("../pred_CSVs/", species, "_pred_crossval.csv"), row.names = FALSE)
-
+  
 }  # end for species
+
+# spc <- "agaper"
+# blocks
+# blocks[[spc]]
+# plot(blocks[[spc]]$blocks)
+# blocks[[spc]]$plots
+# blocks[[spc]]$folds
+# blocks[[spc]]$foldID
+# sapply(blocks[[spc]]$folds, function(x) length(x[[1]]))
+# length(blocks[[spc]]$foldID)
+
+blocks
+saveRDS(blocks, "../CV_blocks/_blocks.rds")
 
 
 # COMPUTE CROSS-VALIDATION METRICS ####
 
-fold_cols <- grep("_fold", names(dat))
-names(dat)[fold_cols]
-measures <- c("AUC", "TSS", "MCS")
+dir.create("../eval_metrics/crossval_boxplots", recursive = TRUE)
+dir.create("../eval_metrics/crossval_metrics", recursive = TRUE)
 
-# create an empty table to receive the cross-validation results:
-crossval <- as.data.frame(matrix(nrow = length(folds), ncol = length(measures) * length(names(models))))
-colnames(crossval) <- c(outer(names(models), measures, FUN = paste, sep = "_"))
-crossval  # for now it's only filled with NAs
+models <- c("glm", "bart")
+folds <- 1:5
 
-par(mfrow = c(5, 2), mar = c(2, 2, 1.1, 1))
+measures <- c("AUCratio", "pROCpval", "omis", "sens", "spec")
 
-for (species in species_list) {
+for (species in species_list) {  # [grep("poicep", species_list):length(species_list)]
   pred_nat <- read.csv(paste0("../pred_CSVs/", species, "_pred_crossval.csv"))
+
+  # create an empty table to receive this species' cross-validation results:
+  crossval <- as.data.frame(matrix(nrow = length(folds), ncol = 3 + length(measures) * length(models)))
+  colnames(crossval) <- c("n_pres", "n_abs", "thresh_2.5trainpres", outer(measures, models, FUN = paste, sep = "_"))
+
+  for (m in models)  for (f in folds) {
+    fold_p_col <- paste0(m, "_p_fold", f)
+    fold_dat <- pred_nat[pred_nat$foldID == f, ]
+    
+    thresh <- quantile(pred_nat[pred_nat$presence == 1 & pred_nat$foldID != f, fold_p_col], probs = 0.025, na.rm = TRUE)  # pred for minimum 2.5% presence in the training data (outside fold)
+    glm_pred_nat_rst <- rast(paste0("../pred_rasters/native/", species, "_nat_p_glm.tif"))
+    bart_pred_nat_rst <- rast(paste0("../pred_rasters/native/", species, "_nat_p_bart.tif"))
+    
+    proc <- kuenm_proc(occ.test = fold_dat[fold_dat$presence == 1, c("lon", "lat")], model = raster(get(paste0(m, "_pred_nat_rst"))), threshold = thresh * 100, rand.percent = 50, iterations = 1000)$pROC_summary
+    threshmeas <- threshMeasures(obs = fold_dat$presence, pred = fold_dat[ , fold_p_col], measures = c("Omission", "Sensitivity", "Specificity"), thresh = thresh, plot = FALSE)$ThreshMeasures[,1]
+    
+    crossval[f, "n_pres"] <- sum(pred_nat[pred_nat$foldID == f, "presence"] == 1, na.rm = TRUE)
+    crossval[f, "n_abs"] <- sum(pred_nat[pred_nat$foldID == f, "presence"] == 0, na.rm = TRUE)
+    crossval[f, "thresh"] <- thresh
+    crossval[f, paste0(c("AUCratio_", "pROCpval_"), m)] <- proc
+    crossval[f, paste0(c("omis_", "sens_", "spec_"), m)] <- threshmeas
+  }
   
-
+  write.csv(data.frame(fold = as.integer(rownames(crossval)), crossval), paste0("../eval_metrics/crossval_metrics/crossval_metrics_nat_", species, ".csv"), row.names = FALSE)
+  
+  # boxplots of the cross-validation metrics:
+  jpeg(paste0("../eval_metrics/crossval_boxplots/", species, ".jpg"))
+  par(mar = c(7.2, 3, 2, 1))
+  boxplot(crossval[ , 3:ncol(crossval)], las = 2, main = species)
+  abline(h = 1, col = "darkgrey", lty = 2)
+  dev.off()
+  
+  print(species)
+  print(crossval)
+  gc()
 }
-
-
-for (m in names(models))  for (f in folds) {
-  fold_name <- paste0("fold", f)
-  fold_col <- names(dat)[grep(paste0(m, "_fold", f), names(dat))]
-  fold_dat <- subset(dat, foldID == f)
-  crossval[f, paste(m, "AUC", sep = "_")] <- AUC(obs = fold_dat[ , spc_col], pred = fold_dat[ , fold_col], simplif = TRUE, plot = TRUE, main = paste(m, "AUC"))
-  crossval[f, paste(m, "TSS", sep = "_")] <- threshMeasures(obs = fold_dat[ , spc_col], pred = fold_dat[ , fold_col], thresh = "preval", measures = "TSS", simplif = TRUE, standardize = FALSE, main = paste(m, "TSS"))
-  crossval[f, paste(m, "MCS", sep = "_")] <- MillerCalib(obs = fold_dat[ , spc_col], pred = fold_dat[ , fold_col], main = paste(m, "Miller line"))$slope
-}
-# press the back arrow on the top left of your plotting window to see the fold evaluations for the different models
-
-crossval
-
-# plot the mean cross-validation performance for each model, but note the mean is quite limited information!
-crossval_means <- sapply(crossval, mean, na.rm = TRUE)
-par(mfrow = c(1, 1), mar = c(7, 3, 2, 1))
-barplot(crossval_means, ylim = c(0, max(crossval, na.rm = TRUE)), col = rep(1:length(measures), each = length(models)), las = 2)
-abline(h = 1, col = "darkgrey", lty = 2)
-
-# get more information with boxplots of the cross-validation metrics:
-boxplot(crossval, col = rep(1:length(measures), each = length(names(models))), las = 2)
-abline(h = 1, col = "darkgrey", lty = 2)  # remember Miller calibration slope (MCS) should ideally be close to 1 (not bigger = better)
-
-
