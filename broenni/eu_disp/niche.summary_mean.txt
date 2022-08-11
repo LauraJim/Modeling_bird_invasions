@@ -1,0 +1,14 @@
+"value"
+"niche_overlap_F.D.mean"	0.0533354903
+"niche_overlap_F.D.sd"	0.112134101847733
+"niche_overlap_F.T.mean"	0.06482227685
+"niche_overlap_F.T.sd"	0.130982351512295
+"stability.index.mean"	0.2763855091
+"stability.index.sd"	0.374148477673766
+"expansion.index.mean"	0.7236144909
+"expansion.index.sd"	0.374148477673766
+"unfilling.index.sd"	0.380333965642692
+"unfilling.index.mean"	0.66759453535
+"sim1"	4
+"sim2"	1
+"equ"	2
