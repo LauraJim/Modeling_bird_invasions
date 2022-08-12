@@ -1,0 +1,67 @@
+ Species: Estrilda astrild
+ Allometry input based on museums specimens measured by Diederik Strubbe
+Assume head long axis in horizontal plane; dorsal = up = vertical:  ALL PHOTOGRAPH length units in CM **********.
+
+Vertebrate/invertebrate group                            Locomotion type
+'mammal','birdie','reptil','amphib','insect','btrfly'    bipedal/quadped
+----------------------------------------------------     ---------------
+'birdie' 'bipedal'
+
+HEAD  Geometry types allowed: cylinder(1),sphere(2),ellipsoidal cyl.(3), ellipsoid (4), truncated cone(5). For cone the vert diam entry is large base diam. Horiz diam entry is the 'snout' diameter.
+Dia.vertical(distal)  Dia.horiz(proximal)  Length  Fur depth(mm)-Midorsl  Midventral Density(kg/m^3) Geometry
+----------------      -------------------  ------  --------//---------      -----//----- --------------  ---------
+1.2 1.2 1.58 1.92 1.92 1.77 1.77 875 4
+
+NECK long axis in horizontal plane: same definitions as above: USER -ONLY 2 CHOICES FOR ALL other body parts			****NOTE for the fur depths: the first entry is the 'reference' fur depth that the photo allometry and flesh
+Dia.vertical  Dia. horizont  Length  Fur depth(mm)-Midorsl Fur-vntrl(mm) Density(kg/m^3) Geometry cyl(1), elips cyl(3)      dimensions will be based on. The second entry is for users who want to change fur depth without changing
+------------  -------------  ------  ------//---------  	----//---- 	 --------------  ---------							body dimensions.**********
+1.34 1.21 0.82 5.40 5.40 2.84 2.84 875 3
+
+TORSO: assume long axis in horizontal plane: same definitions as above
+Dia.vertical  Dia. horizont  Length  Fur depth(mm)-drsl    	Fur-vntrl(mm)  Density(kg/m^3) Geometry cyl(1), elips cyl(3)
+------------  -------------  ------  --------//---------		----//------    --------------  ---------
+1.81 2.13 4 2.86 2.86 2.22 2.22 875 4
+
+FRONT LEGS: diameters = sideways, front-back                   If 'birdie', set front leg Geometry = 0.
+Dia.sideways  Dia. front-back  Length  Fur depth(mm)-drsl  Fur-Midventral Density(kg/m^3) Geometry cyl(1), ellips cyl(3)
+------------  -------------    ------  -------//----------  -----//----- --------------  ---------
+0 0 0 0 0 0 0 0 0
+
+BACK LEGS: diameters = sideways, front-back
+Dia.sideways  Dia. front-back  Length  Fur depth(mm)-drsl  Fur-Midventral Density(kg/m^3) Geometry cyl(1), ellips cyl(3)
+------------  -------------    ------  --------//---------  ----//------ --------------  ---------
+0.18 0.12 2.25 0.01 0.01 0.01 0.01 875 3
+
+TAIL/ADDITIONAL APPENDAGE: assume long axis in horizontal plane: same definitions as with torso above   Geom: cyl(1),elips      Is 6th part a tail   **Use either if not modeling
+Dia.vert (proximal)  Dia. horiz (distal)  Length  Fur depth(mm)-drsl    Fur-vntrl(mm)  Density(kg/m^3)  cyl(3),trunc cone(5)    (T) or proboscis (P) **a 6th appendage
+------------        -------------         ------  --------//---------  -----//-----     --------------  ---------               --------------------
+0.62 0.59 0.84 0.01 0.01 0.01 0.01 400 5 P
+
+Absolute measurement (cm)   Shoulder hyt(1);Torso diam (2); Tot length1 (no tail)(3)	ADJUST INITIAL DIMENSIONS
+(Real physical dimension)	Tot length2 (incl.tail)(4); Bipedal (5)                      (0=no adjustment; 1=adjust radially; 2= adjust all dimensions)
+-------------------			---------------------------------------------------------   ----------------------------------------------------------------
+7.24 4 2
+
+Subcutaneous Fat on Body Parts (Y/N)					 Where does time-dependent mass change come from?
+Head	Neck	Torso	Front Legs	Back Legs  Tail		 0 = all parts proportionally; 1= torso only (INTEGER!)
+----	----	-----	----------	---------  ----		 -------------------------------------------------
+'N' 'Y' 'Y' 'N' 'N' 'N' 1
+
+Post1  Post2  Post3  Post4     Start Sleep Posture    Start Shade Posture   End Inactive Posture   **Note: Posture 1 = all body parts still modeled, but all in contact with ground
+(Y/N)  (Y/N)  (Y/N)  (Y/N)		     (1-4)				   (1-4)				(1-4)					   Post 2 = legs lumped into torso, head/neck still held up. Post 3 = legs lumped
+-----  -----  -----  -----     -------------------    -------------------   --------------------		   into torso, head/neck in contact with ground. Posture 4 = single lump.
+'N' 'N' 'N' 'Y' 4 4 4
+
+MinFlshK	MinFlshK	MinFlshK	MinFlshK	MinFlshK  MinFlshK    Variable core temp? (Y/N)         Torso overhang (for leg shade) - horizontal distance between       Leg vertical offest (for leg shade) - vertical distance  Bird sleep        Bird sleep on                 NOTE: these last 2 variables only kick in if it's a bird.
+Head		Neck		Torso		Front Leg	Rear Leg  Tail	       Legs  6APNDG 6APDNG on ground?    widest point on torso and lateral edge of leg (from front view)      between torso and top of top of variable-core-temp leg  standing? (Y/N)   1 or 2 legs?
+--------	--------	--------	---------	--------  --------	   ----- ------ -----------------   --------------------------------------------------------------     -------------------------------------------------------  ------------      -------------
+0.412 0.412 0.412 0.412 0.412 0.412 'N' 'N' 'N' 0 0 'N' 2
+
+Tc reduced	(Y/N)?              Tc=fraction or difference	Fraction (0-1): 1= core,									Let leg temp            Let 6th app. temp
+Legs     6th Appendage		   from local temp (D/F)  0.5 = halfway,  0=ground	   Difference		Min Temp (C)    increase if hot? (Y/N)  increase if hot? (Y/N)
+------   -------------		---------//---------------	 ----------//-----------	 -----//-----		 ------------ ------------------         -------------------
+'Y' 'N' 'F' 'F' 0.5 0.5 1.0 1.0 3.5 'Y' 'Y'
+
+**Note: be sure that the minimum and maximum flesh themal conductivity values here do not conflict with endo.dat inputs for overall min/max values.
+**Note: be sure to include a minimum flesh thermal K for all body parts regardless of whether they are being modeled.
+**Note: for the fraction/difference inputs on the last line, enter the input for the legs before the double slash and the input for the 6th appendage after the double slash.

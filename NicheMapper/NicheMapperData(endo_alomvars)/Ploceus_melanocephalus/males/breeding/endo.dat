@@ -1,0 +1,282 @@
+Name simulation & input file to run: 'endoprop','endotime', and 'endosens' are choices. Input for Endo2013b.
+endoprop = no variation in animal parameters with time; read only this file
+endotime = time dependent variables, e.g. core temp., food type available, etc.;
+endosens = sensitivity analysis for different body sizes for given climate regime;
+2ND VARIABLE: Hourly output (y/n)? Do not use for GIS-type calc's unless need hourly output
+Hourly output = 'y' creates files 'HOURPLOT.OUT' and 'ACTHOURS.OUT'.3RD VAR = 'y'->file OUTPUT printed
+4TH VAR: IF 2.0<DEPEND<3.0 = total metab.in W;if DEPEND=2.0, then metab. in W/kg;
+5TH-7TH variables: 'ECTHRM' vs 'NDTHRM' (Ectotherm vs. Endotherm)=known [Tc-Met rate known; solve for Tc] vs
+[fixed Tc, solve for Met(no flight) OR [fixed Met, solve for Tc (flight). USE 'NDTHRM' IF FLIGHT = 'Y'
+If 'ECTHRM', then read slope & intercept of ln(ml O2/g/h) = slope*Tc + intercept, ELSE USE ZERO FOR SLOPE AND INTERCEPT IF NDTHRM
+8th Variable: What type of microclimate input files are read in. 'CSV' if using Micro2011; 'OUT' if using Micro2010
+9th Variable: What type of output files from endotherm model: 'CSV' or 'OUT'
+10th Variable: What units for metabolic requirements in MONTH and YEAR output files: 'JL', 'KJ', or 'MJ'  *Joules, Kilojoules, or Megajoules*
+-----------------------------------------------------------------------------
+'ENDOTIME' 'N' 'N' 2.5 'NDTHRM' 0 0 'OUT' 'CSV' 'KJ'
+
+Do a transient in   If a transient, is it   Consider stored  Specific   Class of animal (6 letters): 'MAMMAL','
+addition to steady  for the animal (1.)     heat in energy   Heat       'BIRDIE','REPTIL','AMPHIB','INSECT''
+state (y/n)         or nest/shelter (0.)?   balance?(Y/N)    (J/KgC)    mammal,bird,reptile,amphibian,insect)'	   MARSUPIAL?
+--------            -------------------     -------------    -------    ----------------------------------------    ----------
+'n' 1 'Y' 4185 'BIRDIE'  'N'
+
+Animal species = Ploceus melanocephalus
+Animal Variables           Dep var form: 2.0<DEPEND<3.0 = total metab.in W
+ALLOMETRIC properties
+Geometric properties		        Whole body(torso if apndgs) Geom Mult      '0APNDG'if no appendages-IN CAPS!!
+Max       Fat mass   Is fat subcut? Geometric approx.(integer)  Ellips:(A:B)   '2APNDG'if 2 appndg (e.g.bird)   % ventral area      Include		  dec % fur   Animal 	    User supplied
+'weight   as % body  (If so, afects  1=cyl,2=spher,             Cyl:(L:Rskin)  '4APNDG'if 4 appndg (e.g.mammal) contacting substr.  conduction	  compression density 	    allometry?
+'(kg)     mass(%)    heat loss)(Y/N) 4=ellipsoid                                  use complx geom's              (decimal 100%=1.O) w/ sub? (Y/N) for condct  kg/m3(932.9)	      (Y/N)
+------    ----       -------------   ----------------------     ---------      ----------------                 ----------	         ------------  -----		   --------	    --------------
+0.027 4 'Y' 4 2 '2APNDG' 0.01 'N' 0.5 875 'Y'
+
+User-Specified Metabolic Options
+User supplied  		Assume activity heat	dec % variance from  Increasing act hrs: 0=If ACTIV=Y	Minimum forage rate       dec % of energy for      dec % of energy for
+metabolic rate		contribs to thrmreg		expected met rate	 1=If QMETAB>QMIN; 2=If act mults	(Enter as multiple        activity released as     production released as
+(Y/N)  Met rate (W)     (Y/N)				to trigger thrmreg	 balance; 3=Other min forage rate	 of basal metabolism)     heat that can affect Tc  heat that can affect Tc
+----   ----------   -------------------     -----------------	 --------------------------------	---------------------     -----------------------   -------------------
+'Y' 0.47 'Y' 0.05 2 2.5 0.75 0.25
+
+Fur Properties - LEGS   Note to user *** use same values for all if modeling as a single lump
+Hair dia  Hair length   Fur depth   Hair dens. fur        fur       fur
+(um)      (mm)         (mm)         (1/cm2)    front_refl back_refl tran
+dsl vntl  dsl  vntl     dsl vnt      dsl vntl  nd         nd        nd
+---- ---  ---- -----   --- ---      ----  ----   ----       ----      ----
+0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.33 0.33 0.0
+
+Fur Properties - HEAD & NECK
+Hair dia  Hair length   Fur depth   Hair dens. fur        fur         fur  Used peccary hair properties
+(um)      (mm)         (mm)         (1/cm2)    dorsl_refl ventrl_refl tran
+dsl vntl  dsl  vntl     dsl vnt      dsl vntl   nd         nd          nd    nd means NOT %, but decimal ratio! Max. value = 1.00
+---- ---  ---- -----   ---  ---    ----  ----   ----      -------     ----
+30 30 6.52 6.62 4.27 1.68 10000 10000 0.34 0.28 0.0
+
+Fur Properties - TORSO
+Hair dia  Hair length   Fur depth   Hair dens.  fur         fur         fur
+(um)      (mm)         (mm)         (1/cm2)     dorsl_refl ventrl_refl tran
+dsl vntl  dsl  vntl     dsl vnt      dsl vntl   nd         nd          nd
+---- ---  ---- -----   --- ---      ---- ----   ----       -----       ----
+30 30 28.95 29.29 3.33 3.83 10000 10000 0.53 0.46 0.0
+
+Fur Properties - TAIL
+Hair dia  Hair length   Fur depth   Hair dens. fur        fur         fur
+(um)      (mm)         (mm)         (1/cm2)    dorsl_refl ventrl_refl tran
+dsl vntl  dsl  vntl     dsl vnt      dsl vntl   nd        nd          nd
+---- ---  ---- -----   --- ---    ----  ----   ----       -----       ----
+0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.30 0.30 0
+
+Hair/Feather length (mm) - dorsal
+This allows for TORSO insulation due to fur/feathers to change seasonally.
+Not SI data.
+-------------------------------------------------------------------------------------------------------------
+28.95  28.95  28.95  28.95  28.95  28.95  28.95  28.95  28.95  28.95  28.95  28.95
+
+Hair/Feather length (mm) - ventral
+This allows for TORSO insulation due to fur/feathers to change seasonally.
+Not SI data.
+--------------------------------------------------------------------------------------------------------------
+29.29 29.29 29.29 29.29 29.29 29.29 29.29 29.29 29.29 29.29 29.29 29.29
+
+Pelt/plumage depth (mm)- dorsal
+This allows for TORSO insulation due to fur/feathers to change seasonally.
+Not SI data.
+-------------------------------------------------------------------------------------------------------------
+3.33 3.33 3.33 3.33 3.33 3.33 3.33 3.33 3.33 3.33 3.33 3.33
+
+Pelt/plumage depth (mm)- ventral
+This allows for TORSO insulation due to fur/feathers to change seasonally.
+Not SI data.
+-------------------------------------------------------------------------------------------------------------
+3.83 3.83 3.83 3.83 3.83 3.83 3.83 3.83 3.83 3.83 3.83 3.83
+
+PHYSIOLOGICAL properties - temperature and water loss from metabolism & skin						Flesh thermal                     User supplied  fur           Depth in fur for radiant exchange
+Core     Core   Core    Min. diff   Texpir-     % skin wet  Max % skin    Sweat OK?	Piloerect OK?	conductivity (0.412 - 2.8 W/mC)	  thermal conductivity (W/mC)? 1.0= fur surface;
+regul_T  max T  min T   Tc-Tskin(C) Tair (C)    (sweat)     wet (sweat)   (Y/N)		(Y/N)			Start    Minimum  Maximum		  (Y/N)    Value               0.5=halfway b/w fur and skin
+----     -----  ----   ----------   -------     ----------  -----------   ---------	-------------	-------  -------  -------		  -----    -----               ---------------
+41.6 44.1 39 0.5 2 1 5 'Y' 'Y' 1 0.412 2.8 'Y' 0.034 0.9
+
+PHYSIOLOGICAL properties - lungs and gut: grass hay dig. eff.
+O2 extraction      O2 extraction     Gut passage  Fecal water  Urea in
+efficiency max(%)  efficiency min(%) time (days)  (dec. %)     urine (dec. %)
+------------       ---------------- ----------   ----------   --------------
+30 6 0.025 0.6 0.03
+
+PHYSIOLOGICAL properties - monthly values: Core temperature regulated this month
+This can be used to simulate hibernation or other unusual activity timing.
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+-----------------------------------------------------------------------------------------------------------------------------------
+41.6 41.6 41.6 41.6 41.6 41.6 41.6 41.6 41.6 41.6 41.6 41.6
+
+Physiological properties - Digestive efficiencies - monthly values:
+' (decimal %) 0.95-nectar (McWhorter & Del Rio, 2000); 0.85-insects   '
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+-----------------------------------------------------------------------------------------------------------------------------------
+0.85 0.85 0.85 0.85 0.85 0.85 0.85 0.85 0.85 0.85 0.85 0.85
+
+PHYSIOLOGICAL properties - monthly values: Times basal for activity energy & food for it (1-7)
+This can be used to simulate phenology of food available and reproduction timing.
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+-----------------------------------------------------------------------------------------------------------------------------------
+2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5
+
+PHYSIOLOGICAL properties - monthly values: Times basal for disc. nrg food intake (0-7)
+Can use to simulate phenology of food available and reproduction timing.0=no reprod effort
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+-----------------------------------------------------------------------------------------------------------------------------------
+1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5
+
+FOOD properties -  % protein (decimal %): monthly values:
+'   100%=1.00 Nectar except breeding months, then same as creeper (April-May): '
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+-----------------------------------------------------------------------------------------------------------------------------------
+0.11 0.18 0.15 0.17 0.18 0.24 0.11 0.12 0.11 0.11 0.10 0.11
+
+FOOD properties -  % fat: monthly values
+(decimal:  100% is 1.00)
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+-----------------------------------------------------------------------------------------------------------------------------------
+0.10 0.25 0.19 0.28 0.25 0.39 0.07 0.12 0.05 0.06 0.05 0.05
+
+FOOD properties - % carbohydrate: monthly values
+(decimal format) 100% carbohydrate = 1.00 decimal
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+-----------------------------------------------------------------------------------------------------------------------------------
+0.37 0.21 0.26 0.39 0.45 0.29 0.45 0.24 0.63 0.58 0.60 0.57
+
+FOOD properties - monthly values: % dry matter
+(decimal)(0.25 green veg.;0.75 seed humid stor.; 0.9219 dry seed)
+ 15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+-----------------------------------------------------------------------------------------------------------------------------------
+0.75 0.75 0.75 0.75 0.75 0.75 0.75 0.75 0.75 0.75 0.75 0.75
+
+BEHAVIORAL properties - monthly values: Diurnal?  ALL BEHAVIOR OPTIONS MUST BE IN CAPS!!!
+(Y/N) (Diurnal value for Diurnal in BEHAV.DATA should be the January value here)
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+-----------------------------------------------------------------------------------------------------------------------------------
+'Y' 'Y' 'Y' 'Y' 'Y' 'Y' 'Y' 'Y' 'Y' 'Y' 'Y' 'Y'
+
+BEHAVIORAL properties - monthly values: Nocturnal?
+(Y/N) (Diurnal value for Diurnal in BEHAV.DATA should be the January value here)
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+-----------------------------------------------------------------------------------------------------------------------------------
+'N' 'N' 'N' 'N' 'N' 'N' 'N' 'N' 'N' 'N' 'N' 'N'
+
+BEHAVIORAL properties - monthly values: Crepuscular?
+(Y/N) (Diurnal value for Diurnal in BEHAV.DATA should be the January value here)
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+-----------------------------------------------------------------------------------------------------------------------------------
+'Y' 'Y' 'Y' 'Y' 'Y' 'Y' 'Y' 'Y' 'Y' 'Y' 'Y' 'Y'
+
+BEHAVIORAL properties - monthly values: Hibernate?
+(Y/N)
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+--------------------------------------------------------------------------
+'N' 'N' 'N' 'N' 'N' 'N' 'N' 'N' 'N' 'N' 'N' 'N'
+
+Fraction of day hibernating,
+if hibernating
+(0.0 - 1.0)
+--------------------------------------------------------------------------
+0 0 0 0 0 0 0 0 0 0 0 0
+
+BEHAVIORAL properties - monthly values:						****NOTE: use 'W' to model an animal floating on the water. To model a fully submerged animal
+Active on Land (L) or Water (W) for each simulation day?			  that spends some time on land and some time in the water, use 'L' here and then use
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.			  the dive option and dive table to model the time in the water
+--------------------------------------------------------
+L L L L L L L L L L L L
+
+BEHAVIORAL properties - monthly values:
+Inactive on Land (L) or Water (W) for each simulation day(?)
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+--------------------------------------------------------
+L L L L L L L L L L L L
+
+Time dependent changes in mass (kg)
+This allows for seasonal changes to to fat loss or gain or growth
+15. 46. 74. 105. 135. 166. 196. 227. 258. 288. 319. 349.
+--------------------------------------------------------
+0.027 0.027 0.027 0.027 0.027 0.027 0.027 0.027 0.027 0.027 0.027 0.027
+
+% body fat composition
+This allows for insulation due to fat to change seasonally.
+Whether it is subcutaneous or body fat is determined by the user in the 3rd data line, 3rd data element above.
+-------------------------------------------------------------------------------------------------------------
+4 4 4 4 4 4 4 4 4 4 4 4
+
+Hibernation body temperature (if hibernate), else set to lowest body temperature.
+This allows for seasonal changes in body temperature.
+Whether it is subcutaneous or body fat is determined by the user in the 3rd data line, 3rd data element above.
+-------------------------------------------------------------------------------------------------------------
+39.0 39.0 39.0 39.0 39.0 39.0 39.0 39.0 39.0 39.0 39.0 39.0
+
+BEHAVIORAL: Use nest Climb    Ground shade Dive      Seek Wind	 Night shade?     Dive?			Active in			    TR order:	Burrow/nest TR use option:
+Burrow OK?  for TR?  to cool? seeking OK?  to cool?  Protection? Cold protection) Dive option	shade in day?		    Behav 1st?	1= both hot & cold
+(Y/N)      (Y/N)    (Y/N)    (Y/N)        (Y/N)     (Y/N)		 (Y/N)            (Y/N)			(Y/N); (S)tand/(L)ie	 (Y/N)		2= only hot 3= only cold	Wade (Y/N)?
+-------     -------  -----    ----------   --------  ----------- -------------    ---------		----- / -------	     	---------	-------------------------	----------
+'N' 'N' 'Y' 'Y' 'N' 'N' 'N' 'N' 'Y' 'S' 'N' 1 'N'
+
+BEHAVIORAL  Flight variables             Flight  If flight=yes, If animal is pollinating
+Flight OK? If flight = yes, then specify Velocity  insect, average flight load (g) may be
+(Y/N)      flight metab (W) specified to (m/s)  correct for flight metabolism
+-------    -----------------------------   ---   ----------------------------------
+'N' 0 0 0
+
+Fossorial(Below    Digger	If fossorial,       Arboreal 	  Shelter/nest type: CYLN=HOLLOW FULL CYL;       NEST/SHELTER USE WHEN
+grd EXCLUSIVELY)?  Dig burrows? OK node#s=2-10; exclusively?  HFCL=HOLLOW HALF CYLINDER; SPHR=HOLLOW SPHERE  INACTIVE (NOT HIBERNATING)?
+(Y/N)          (Y/N)		else use 1	'       (Y/N)         FLAT,CUPP,CYLN,HFCL,SPHR,DOME,NONE)            (Y/N)
+----------      ----------	  -------------    -------		 -------------------------------------           --------
+'N' 'N' 1 'N' 'NONE' 'N'
+
+CONFIGURATION FACTORS FOR DIFFUSE IR   User-supplied
+Fasky   Fagrd  Fabush/near object 	   Nu-Re Correlation	    Front	     Side
+0-0.5   0-0.5  0-0.5   			   Coefficients? (Y/N)     a     b       a      b
+-----   -----  -----  				   -------------------    ----  ----   ----  ----
+0.5 0.4 0 'N' 0.37 0.66 0.42 0.75
+
+NEST properties: if nest THICKNESS = 0.0, no nest is assumed'	   Shelter/Nest # animals in nest	   If nest/rest place above ground = 'A'		        If nest is below ground,'B',then how deep
+Nest wall            Nest wall (wood: 0.10-0.35;sheep wool:0.05)  to adjust # present for xtra		   If nest/rest place below ground = 'B'				is the nest, i.e., what is the node number (2-10)?
+thickness (m)        thermal conductivity (W/m-C)	           heat production. If <1, no nest calc.   If nest='B',set 'Burrow OK'='N',so stay @ 1 depth	Example: node 6 is at 20 cm. (see bottom line below)
+---------------      ----------------------------	    	 --------------------------------------    -------------										---------------------------------------------
+0 0 0 'A' 10
+
+AIR (Burrow gas properties; atm values in parens) NOTE:THESE MUST SUM TO 100.0%
+% O2     %CO2      %N2
+(20.95%)  (0.03%)  (79.02%) = standard atmosphere
+--------  -------  --------
+18 0.13 81.87
+
+SOIL,BURROW properties			Segment	    Burrow
+Soil type; Finesand=1 sandyloam=2 	length/day	depth
+gravelly sand=3 clay=4				   (m)	  	 (m)
+-----------------------------------	----------	------
+1 0 0
+
+Shelter/Nest properties  (Hominid Paleoshelter)						Shelter transient?
+Used when nest type is not 'NONE' and multiplier >= 1          	    Is there a tree/log or large shelter
+Length(m) Outer diameter(m) Solar reflectivity(decimal: 1.0 = 100%) that needs to be run as a transient (Y/N)
+--------- ----------------- ------------------------------------   	------------------------------------------
+0 0 0 'N'
+
+Density	      Specific	Nest height rel. to ground surf.(m)
+nest material Heat      + = below surface,
+(kg/m3)	      (J/kg-C)  - = above surface
+--------    -----------	---------------
+0 0 0
+
+TRANSIENT for SHELTER OR ANIMAL(geometry specified above by shelter/nest type)
+Nodes start from the geometrical center of the hollow
+Number of nodes starting at the inner radius of the shelter to the outer surface
+---------------------------------------------------------
+1
+
+Node locations (m) measured from the geometrical center. Last outer node should be the outer surface.
+Radial dimension of first node should be 0 for an animal, larger than the radius of the animal for a shelter transient.
+For example: for a shelter, if number of nodes = 5: Radii might be 0.03 0.035 0.04 0.05 0.10 ***NOTE: Total thickness must be same as nest wall thickness above***
+-----------------------------------------------------
+0
+
+# These are comments and not read.: logMR = 0.031*T - 2.27				(Eq. 1)
+# where T = temperature (in  C) and MR is in mlCO2/hr
+# My rederivation for O2 instead of CO2 for Tsetse fly assuming protein diet (RQ = 0.8) lnMR = 0.0714*T - 2.561
+# where T = temperature (in C) and MR is in mlO2/g-h
+# Eucalyptus properties like those of hickory, oak
