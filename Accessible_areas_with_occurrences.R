@@ -4,6 +4,7 @@ library(raster)
 library(dismo)
 library(ggplot2)
 library(ecospat)
+library(rgeos)
 
 # Read species IDs
 bird.species <- list.dirs(path = "./ranges", full.names = FALSE, recursive = FALSE)
@@ -47,7 +48,7 @@ for (x in 1:length(bird.species)){
   #keep resident and breeding season ranges
   native.range.shp <- native.range.shp[which(native.range.shp$SEASONAL == 1 |native.range.shp$SEASONAL == 2),]
   #buffer with 0.5?C
-  native.range.shp <- buffer(native.range.shp,width=0.5,dissolve=TRUE)                                          
+  native.range.shp <- gBuffer(native.range.shp,width=0.5)                                          
   #plot(native.range.shp)
   
   #keep only occurrences that are within the buffered native range
@@ -70,10 +71,10 @@ for (x in 1:length(bird.species)){
   #invasive.bird.rare <- humboldt.occ.rarefy(in.pts=invasive.bird,colxy=1:2, rarefy.dist = 50, rarefy.units = "km") 
   
 # 4) Read PCA layers
-  pc.native <- stack(paste0("./bioreg_occ_dist_climgrids/",paste0(species.id,"/"),
-                            species.id,"_ClimGridsPCA.native.tif"))
-  pc.invasive <- stack(paste0("./bioreg_occ_dist_climgrids/",paste0(species.id,"/"),
-                              species.id,"_ClimGridsPCA.invasive.tif"))
+  pc.native <- stack(paste0("./bioreg_occ_dist_allgrids/",paste0(species.id,"/"),
+                            species.id,"_allGridsPCA.native.tif"))
+  pc.invasive <- stack(paste0("./bioreg_occ_dist_allgrids/",paste0(species.id,"/"),
+                              species.id,"_allGridsPCA.invasive.tif"))
 
 # 5) Add environmental data to rarefied occurrences    
   native.bird.rare.vars <- data.frame(extract(pc.native,native.bird.rare))
@@ -86,9 +87,9 @@ for (x in 1:length(bird.species)){
   colnames(invasive.bird.rare.vars) <- c("lon","lat","PC1","PC2")
 
 # 6) Save tables
-  write.csv(native.bird.rare.vars,paste0("./Nf_modeling/occurrences-v3/",
+  write.csv(native.bird.rare.vars,paste0("./Nf_modeling/occurrences-newPCA/",
                                          species.id,"_native.csv"))
-  write.csv(invasive.bird.rare.vars,paste0("./Nf_modeling/occurrences-v3/",
+  write.csv(invasive.bird.rare.vars,paste0("./Nf_modeling/occurrences-newPCA/",
                                          species.id,"_invasive.csv"))
  
 # 7) Select random points inside accessible area and add PC values
@@ -97,7 +98,7 @@ for (x in 1:length(bird.species)){
   rp.aa.vars <- data.frame(extract(pc.native,rp.aa))
   rp.aa.vars <- na.omit(data.frame(rp.aa,rp.aa.vars))
   colnames(rp.aa.vars) <- c("lon","lat","PC1","PC2")
-  write.csv(rp.aa.vars,paste0("./Nf_modeling/accessible-areas-v3/",
+  write.csv(rp.aa.vars,paste0("./Nf_modeling/accessible-areas-newPCA/",
                                          species.id,"_native_range.csv"))
   
 # 8) Create table with random points inside the invaded region
@@ -105,7 +106,7 @@ for (x in 1:length(bird.species)){
   rp.ir.vars <- data.frame(extract(pc.invasive,rp.ir))
   rp.ir.vars <- na.omit(data.frame(rp.ir,rp.ir.vars))
   colnames(rp.ir.vars) <- c("lon","lat","PC1","PC2")
-  write.csv(rp.ir.vars,paste0("./Nf_modeling/accessible-areas-v3/",
+  write.csv(rp.ir.vars,paste0("./Nf_modeling/accessible-areas-newPCA/",
                               species.id,"_invaded_region.csv"))
 } #end of for-loop
 
@@ -114,7 +115,7 @@ sum.table <- cbind(bird.species,sp.nocc.ini,sp.nocc.end,sp.nocc.rare,
                    sp.nocc.inv,sp.nocc.inv.rare)
 colnames(sum.table) <- c("speciesID","N.initial","N.cleaned","N.rarefied",
                          "N.invasive","N.inv.rarefied")
-write.csv(sum.table,"./Nf_modeling/allspecies_samplesizes_v3.csv",row.names = F)
+write.csv(sum.table,"./Nf_modeling/allspecies_samplesizes_newPCA.csv",row.names = F)
 
 
 ### END
